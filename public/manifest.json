@@ -1,0 +1,21 @@
+{
+  "short_name": "EmcurePedia",
+  "name": "Emcure Pedia - Medicine Reference & DRAP Database",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/isometric/192/pill.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/isometric/512/pill.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "display": "standalone",
+  "orientation": "portrait"
+}

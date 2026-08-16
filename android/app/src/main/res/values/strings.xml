@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Emcure Pedia</string>
+    <string name="title_activity_main">Emcure Pedia</string>
+    <string name="package_name">com.emcurepedia.app</string>
+    <string name="custom_url_scheme">com.emcurepedia.app</string>
+</resources>

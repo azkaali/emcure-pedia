@@ -1,0 +1,31 @@
+{
+  "name": "emcure-pedia",
+  "version": "1.0.0",
+  "description": "Mobile Medicine Reference & Live DRAP Scraper Sync App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "scrape": "node drap_scraper.js",
+    "mobile": "cd mobile && npx expo start",
+    "cap:sync": "npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:run": "npx cap run android"
+  },
+  "keywords": [
+    "medicine",
+    "drap",
+    "pharma",
+    "mobile-app",
+    "drug-database"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

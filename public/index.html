@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Emcure Pedia | Mobile Medicine Catalog & Live DRAP Sync</title>
+  <meta name="description" content="Comprehensive mobile pharmaceutical database and real-time DRAP drug updater platform.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- App Wrapper -->
+  <div id="app" class="app-container">
+
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">💊</div>
+        <div class="brand-text">
+          <h1>Emcure Pedia</h1>
+          <span class="sub-title">DRAP Drug Directory & Live Sync</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="liveStatusBadge" class="status-badge status-online">
+          <span class="pulse-dot"></span> <span id="syncStateText">Online</span>
+        </div>
+        <button id="btnQuickRefresh" class="icon-btn" title="Refresh Dataset">🔄</button>
+      </div>
+    </header>
+
+    <!-- Main Dynamic Content Views -->
+    <main class="content-viewport">
+
+      <!-- TAB 1: CATALOG VIEW -->
+      <section id="viewCatalog" class="app-view active">
+        <!-- Search & Filter Bar -->
+        <div class="search-section">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search brand, generic name, or reg #..." autocomplete="off">
+            <button id="btnClearSearch" class="btn-clear hidden">✕</button>
+          </div>
+          
+          <!-- Quick Filter Chips -->
+          <div class="filter-chips-wrapper">
+            <button class="chip active" data-filter-type="status" data-filter-value="all">All Status</button>
+            <button class="chip" data-filter-type="status" data-filter-value="Active">Active Only</button>
+            <button class="chip" data-filter-type="status" data-filter-value="Provisionally Active">Provisional</button>
+          </div>
+
+          <!-- Dosage Form Dropdown Filter & Sorting -->
+          <div class="filter-bar-sub">
+            <select id="selectDosageFilter" class="filter-select">
+              <option value="">All Dosage Forms</option>
+            </select>
+
+            <select id="selectSortFilter" class="filter-select">
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+              <option value="reg_asc">Registration #</option>
+              <option value="date_desc">Recently Updated</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Catalog Metrics Summary -->
+        <div class="results-header">
+          <span id="resultsCount">Loading catalog...</span>
+          <span id="dbSyncTime" class="sync-time-label"></span>
+        </div>
+
+        <!-- Drug Cards Container -->
+        <div id="drugListContainer" class="drug-list">
+          <div class="loading-spinner-wrapper">
+            <div class="spinner"></div>
+            <p>Loading medicine records...</p>
+          </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="paginationControls" class="pagination-bar hidden">
+          <button id="btnPrevPage" class="btn-page">◀ Prev</button>
+          <span id="pageIndicator" class="page-indicator">Page 1 of 1</span>
+          <button id="btnNextPage" class="btn-page">Next ▶</button>
+        </div>
+      </section>
+
+      <!-- TAB 2: LIVE UPDATER / SCRAPER VIEW -->
+      <section id="viewSync" class="app-view">
+        <div class="view-card">
+          <h2>⚡ Live DRAP Medicine Updater</h2>
+          <p class="section-desc">Fetch and merge newly added medicines directly from the official Drug Regulatory Authority of Pakistan database in real-time.</p>
+
+          <div class="sync-form">
+            <label for="syncTypeSelect" class="form-label">Search Source Category:</label>
+            <div class="segmented-control">
+              <button class="segment-btn active" data-sync-type="brand">Brand Name</button>
+              <button class="segment-btn" data-sync-type="generic">Generic Active Ingredient</button>
+              <button class="segment-btn" data-sync-type="reg">Registration #</button>
+            </div>
+
+            <div class="sync-input-group">
+              <input type="text" id="syncQueryInput" placeholder="Enter medicine name (e.g. Paracetamol, Augmentin)...">
+              <button id="btnStartSync" class="btn-primary">
+                <span>🔄 Fetch & Sync</span>
+              </button>
+            </div>
+
+            <div class="quick-preset-chips">
+              <span class="label">Quick Preset Scans:</span>
+              <button class="preset-chip" data-preset="Paracetamol">Paracetamol</button>
+              <button class="preset-chip" data-preset="Amoxicillin">Amoxicillin</button>
+              <button class="preset-chip" data-preset="Omeprazole">Omeprazole</button>
+              <button class="preset-chip" data-preset="Ciprofloxacin">Ciprofloxacin</button>
+              <button class="preset-chip" data-preset="Leflunomide">Leflunomide</button>
+            </div>
+          </div>
+
+          <!-- Progress & Activity Logs -->
+          <div class="sync-progress-section">
+            <div class="progress-header">
+              <h3>Live Activity Log</h3>
+              <span id="syncStatusBadge" class="badge badge-idle">Idle</span>
+            </div>
+            <div id="syncLogTerminal" class="terminal-box">
+              <div class="terminal-line system-msg">> Ready for live sync query...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ANALYTICS & INSIGHTS -->
+      <section id="viewAnalytics" class="app-view">
+        <div class="view-card">
+          <h2>📊 Database Insights</h2>
+          <p class="section-desc">Real-time statistics of stored pharmaceutical products and manufacturer distribution.</p>
+          
+          <div class="analytics-grid">
+            <div class="metric-card metric-primary">
+              <div class="metric-icon">💊</div>
+              <div class="metric-info">
+                <span id="statTotalDrugs" class="metric-value">0</span>
+                <span class="metric-label">Total Stored Medicines</span>
+              </div>
+            </div>
+
+            <div class="metric-card metric-success">
+              <div class="metric-icon">✅</div>
+              <div class="metric-info">
+                <span id="statActiveCount" class="metric-value">0</span>
+                <span class="metric-label">Active Status</span>
+              </div>
+            </div>
+
+            <div class="metric-card metric-warning">
+              <div class="metric-icon">⏳</div>
+              <div class="metric-info">
+                <span id="statProvisionalCount" class="metric-value">0</span>
+                <span class="metric-label">Provisionally Active</span>
+              </div>
+            </div>
+
+            <div class="metric-card metric-purple">
+              <div class="metric-icon">🏢</div>
+              <div class="metric-info">
+                <span id="statCompaniesCount" class="metric-value">0</span>
+                <span class="metric-label">Pharma Companies</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="analytics-section">
+            <h3>Top Dosage Forms</h3>
+            <div id="dosageBreakdownContainer" class="progress-bars-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="analytics-section">
+            <h3>Leading Manufacturers</h3>
+            <div id="companyBreakdownContainer" class="progress-bars-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="export-actions">
+            <h3>Catalog Backup & Export</h3>
+            <div class="export-btn-group">
+              <a href="/api/export/json" download class="btn-secondary">📥 Export JSON Dataset</a>
+              <a href="/api/export/csv" download class="btn-secondary">📊 Export CSV Spreadsheet</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: BOOKMARKS & NOTES -->
+      <section id="viewBookmarks" class="app-view">
+        <div class="view-card">
+          <h2>⭐ Saved Medicines & Notes</h2>
+          <p class="section-desc">Quick offline access to your bookmarked medicines and personal clinical reference notes.</p>
+          
+          <div id="bookmarksListContainer" class="drug-list">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: ADD NEW DRUG -->
+      <section id="viewAddDrug" class="app-view">
+        <div class="view-card">
+          <h2>➕ Add New Medicine Record</h2>
+          <p class="section-desc">Manually register a custom drug or local product entry in the database.</p>
+
+          <form id="addDrugForm" class="add-drug-form">
+            <div class="form-group">
+              <label for="inputBrandName">Brand Name *</label>
+              <input type="text" id="inputBrandName" placeholder="e.g. Lefulin 20mg Tablet" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inputRegNum">Registration No *</label>
+                <input type="text" id="inputRegNum" placeholder="e.g. 023663 or REG-101" required>
+              </div>
+              <div class="form-group">
+                <label for="inputStatus">Registration Status</label>
+                <select id="inputStatus">
+                  <option value="Active">Active</option>
+                  <option value="Provisionally Active">Provisionally Active</option>
+                  <option value="Suspended">Suspended</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="inputGenericName">Generic Active Composition *</label>
+              <input type="text" id="inputGenericName" placeholder="e.g. Leflunomide 20mg" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inputDosageForm">Dosage Form</label>
+                <input type="text" id="inputDosageForm" placeholder="e.g. Tablet, Syrup, Injectable">
+              </div>
+              <div class="form-group">
+                <label for="inputRoute">Route of Admin</label>
+                <input type="text" id="inputRoute" placeholder="e.g. Oral, Intravenous">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="inputCompanyName">Manufacturer / Company</label>
+              <input type="text" id="inputCompanyName" placeholder="e.g. Getz Pharma Pakistan">
+            </div>
+
+            <div class="form-group">
+              <label for="inputCompanyAddress">Company Address</label>
+              <input type="text" id="inputCompanyAddress" placeholder="e.g. Korangi Industrial Area, Karachi">
+            </div>
+
+            <div class="form-group">
+              <label for="inputPackSizes">Pack Sizes</label>
+              <input type="text" id="inputPackSizes" placeholder="e.g. 30's Blister Pack">
+            </div>
+
+            <div class="form-group">
+              <label for="inputLabelClaim">Label Claim / Indications</label>
+              <textarea id="inputLabelClaim" rows="2" placeholder="Each tablet contains..."></textarea>
+            </div>
+
+            <button type="submit" id="btnSubmitAddDrug" class="btn-primary btn-full">💾 Save Medicine Entry</button>
+          </form>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar for Mobile -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="viewCatalog">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">Catalog</span>
+      </button>
+      <button class="nav-item" data-view="viewSync">
+        <span class="nav-icon">⚡</span>
+        <span class="nav-label">Updater</span>
+      </button>
+      <button class="nav-item" data-view="viewAnalytics">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Insights</span>
+      </button>
+      <button class="nav-item" data-view="viewBookmarks">
+        <span class="nav-icon">⭐</span>
+        <span class="nav-label">Saved</span>
+      </button>
+      <button class="nav-item" data-view="viewAddDrug">
+        <span class="nav-icon">➕</span>
+        <span class="nav-label">Add Drug</span>
+      </button>
+    </nav>
+
+    <!-- Drug Detail Modal Drawer -->
+    <div id="drugDetailModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span id="detailDosageBadge" class="badge badge-outline">Tablet</span>
+            <h2 id="detailBrandName">Medicine Name</h2>
+            <span id="detailGenericName" class="detail-generic">Generic Name</span>
+          </div>
+          <button id="btnCloseModal" class="btn-close">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">DRAP Registration No:</span>
+              <span id="detailRegNum" class="detail-val highlight">000000</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Registration Status:</span>
+              <span id="detailStatus" class="detail-val">Active</span>
+            </div>
+
+            <div class="detail-item full-width">
+              <span class="detail-label">Label Claim / Composition:</span>
+              <span id="detailLabelClaim" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Dosage Form:</span>
+              <span id="detailDosageForm" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Route of Administration:</span>
+              <span id="detailRoute" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item full-width">
+              <span class="detail-label">Manufacturer / Company:</span>
+              <span id="detailCompanyName" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item full-width">
+              <span class="detail-label">Company Address:</span>
+              <span id="detailCompanyAddress" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Specification:</span>
+              <span id="detailSpecification" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Pack Sizes:</span>
+              <span id="detailPackSizes" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Manufacturing Type:</span>
+              <span id="detailManufacturingType" class="detail-val">N/A</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Last Updated:</span>
+              <span id="detailLastUpdated" class="detail-val">N/A</span>
+            </div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="notes-section">
+            <label for="detailUserNotes" class="detail-label">Personal Clinical Notes:</label>
+            <textarea id="detailUserNotes" placeholder="Add custom dosage guidelines or patient instructions..."></textarea>
+            <button id="btnSaveNotes" class="btn-secondary btn-sm">Save Note</button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btnToggleBookmark" class="btn-outline">⭐ Bookmark</button>
+          <button id="btnCopyReg" class="btn-outline">📋 Copy Reg #</button>
+          <button id="btnDeleteDrug" class="btn-danger">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
